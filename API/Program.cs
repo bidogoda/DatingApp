@@ -11,6 +11,16 @@ builder.Services.AddControllers();
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Adding CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularDevClient", x =>
+    {
+        x.WithOrigins("https://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -20,7 +30,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// to use secure with https not using http
+//app.UseHttpsRedirection();
+
+app.UseCors("AllowAngularDevClient");
 
 app.MapControllers();
 
