@@ -1,5 +1,11 @@
+using System.Text;
 using API.Data;
+using API.Extensions;
+using API.Interfaces;
+using API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +15,13 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddControllers();
 
+builder.Services.AddApplicationServices(builder.Configuration);
+
+/*builder.Services.AddScoped<ITokenService , TokenService>();
+
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))); */
+
 // Adding CORS policy
 builder.Services.AddCors(options =>
 {
@@ -21,6 +32,20 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+builder.Services.AddIdentityServices(builder.Configuration);
+
+/*builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(option => 
+            {
+                option.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["TokenKey"])),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });*/
 
 var app = builder.Build();
 
@@ -34,6 +59,9 @@ if (app.Environment.IsDevelopment())
 //app.UseHttpsRedirection();
 
 app.UseCors("AllowAngularDevClient");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
